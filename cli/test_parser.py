@@ -1,15 +1,15 @@
 # cli/test_parser.py
 
-from parsers.multi_parser import TreeSitterParser
+from parsers.multi_parser_engine import MultiParserEngine
 
-sample_py = """
-def add(x, y):
-    return x + y
+# sample_py = """
+# def add(x, y):
+#     return x + y
 
-class User:
-    def greet(self):
-        print("hi")
-"""
+# class User:
+#     def greet(self):
+#         print("hi")
+# """
 
 # parser = TreeSitterParser("python")
 # print("Python functions:", parser.extract_functions(sample_py))
@@ -33,5 +33,5 @@ export const fetchUserDetails = async () => {
 
 """
 
-parser_js = TreeSitterParser("javascript")
-print("JS functions:", parser_js.parse_code(sample_js))
+parser_js = MultiParserEngine("javascript")
+print("JS functions:", parser_js.extract_all_features(sample_js))

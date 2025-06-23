@@ -1,4 +1,4 @@
-# parsers/treesitter_parser.py
+# parsers/multi_parser_engine.py
 
 from tree_sitter import Parser, Language
 
@@ -35,6 +35,18 @@ import tree_sitter_make
 import tree_sitter_scss
 import tree_sitter_svelte
 import tree_sitter_solidity
+
+# Extractors
+from parsers.extractors.function_extractor import FunctionExtractor
+from parsers.extractors.class_extractor import ClassExtractor
+from parsers.extractors.import_extractor import ImportExtractor
+from parsers.extractors.variable_extractor import VariableExtractor
+from parsers.extractors.constant_extractor import ConstantExtractor
+from parsers.extractors.doc_comment_extractor import DocCommentExtractor
+from parsers.extractors.key_value_extractor import KeyValueExtractor
+from parsers.extractors.style_extractor import StyleExtractor
+from parsers.extractors.tag_extractor import TagExtractor
+from parsers.extractors.annotation_extractor import AnnotationExtractor
 
 
 LANGUAGE_BUILDERS = {
@@ -73,30 +85,35 @@ LANGUAGE_BUILDERS = {
     "solidity": Language(tree_sitter_solidity.language()),
 }
 
-class TreeSitterParser:
+EXTRACTORS = [
+    FunctionExtractor(),
+    ClassExtractor(),
+    ImportExtractor(),
+    VariableExtractor(),
+    ConstantExtractor(),
+    DocCommentExtractor(),
+    KeyValueExtractor(),
+    StyleExtractor(),
+    TagExtractor(),
+    AnnotationExtractor(),
+]
+
+class MultiParserEngine:
     def __init__(self, language_name: str):
         if language_name not in LANGUAGE_BUILDERS:
             raise ValueError(f"Unsupported language: {language_name}")
+        self.language = language_name
         lang = LANGUAGE_BUILDERS[language_name]
         self.parser = Parser(lang)
 
     def parse_code(self, code: str):
         return self.parser.parse(bytes(code, "utf8")).root_node
 
-    def extract_functions(self, code: str):
+    def extract_all_features(self, code: str) -> dict:
         root = self.parse_code(code)
-        funcs = []
-
-        def walk(node):
-            if node.type in ("function_definition", "method_definition", "function"):
-                name_node = node.child_by_field_name("name")
-                name = name_node.text.decode("utf8") if name_node else "<anonymous>"
-                funcs.append({
-                    "name": name,
-                    "start_line": node.start_point[0] + 1,
-                    "end_line": node.end_point[0] + 1,
-                })
-            for child in node.children:
-                walk(child)
-        walk(root)
-        return funcs
+        results = {}
+        for extractor in EXTRACTORS:
+            if extractor.supports(self.language):
+                key = extractor.__class__.__name__.replace("Extractor", "").lower()
+                results[key] = extractor.extract(root, code)
+        return results
