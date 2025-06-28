@@ -47,6 +47,12 @@ from parsers.extractors.key_value_extractor import KeyValueExtractor
 from parsers.extractors.style_extractor import StyleExtractor
 from parsers.extractors.tag_extractor import TagExtractor
 from parsers.extractors.annotation_extractor import AnnotationExtractor
+from parsers.extractors.json_extractor import JSONKeyValueExtractor
+from parsers.extractors.yaml_extractor import YAMLKeyValueExtractor
+from parsers.extractors.toml_extractor import TOMLKeyValueExtractor
+from parsers.extractors.sql_extractor import SQLExtractor
+from parsers.extractors.graphql_extractor import GraphQLExtractor
+
 
 
 LANGUAGE_BUILDERS = {
@@ -96,6 +102,11 @@ EXTRACTORS = [
     StyleExtractor(),
     TagExtractor(),
     AnnotationExtractor(),
+    JSONKeyValueExtractor(),
+    YAMLKeyValueExtractor(),
+    TOMLKeyValueExtractor(),
+    SQLExtractor(),
+    GraphQLExtractor(),
 ]
 
 class MultiParserEngine:
@@ -114,6 +125,7 @@ class MultiParserEngine:
         results = {}
         for extractor in EXTRACTORS:
             if extractor.supports(self.language):
+                print(f"Using extractor: {extractor.__class__.__name__} for language: {self.language}")
                 key = extractor.__class__.__name__.replace("Extractor", "").lower()
                 results[key] = extractor.extract(root, code)
         return results
