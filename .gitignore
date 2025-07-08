@@ -21,6 +21,9 @@ wheels/
 *.egg
 MANIFEST
 
+# Repomix Output
+repomix-output.*
+
 # Virtual Environment
 codesage-venv/
 .venv/

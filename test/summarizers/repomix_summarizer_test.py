@@ -3,7 +3,7 @@ import multiprocessing
 
 def main():
     summarizer = RepoMixSummarizer()
-    result = summarizer.summarize_repo("https://github.com/moonman369/Portfolio")
+    result = summarizer.summarize_repo("https://github.com/moonman369/BlinkMart-Server")
     print(f"Summary length: {len(result)}")
 
 if __name__ == "__main__":
