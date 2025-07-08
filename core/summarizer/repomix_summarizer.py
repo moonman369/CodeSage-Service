@@ -4,6 +4,11 @@ from core.summarizer.base_summarizer import BaseSummarizer
 from repomix import RepoProcessor, RepomixConfig
 import multiprocessing
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SUMMARIZER_REPOMIX_CONFIG_OUTPUT_STYLE = os.getenv("SUMMARIZER_REPOMIX_CONFIG_OUTPUT_STYLE", "plain")
 
 class RepoMixSummarizer(BaseSummarizer):
     def summarize_repo(self, repo_url: str) -> str:
@@ -12,7 +17,7 @@ class RepoMixSummarizer(BaseSummarizer):
 
         # Output settings
         # config.output.file_path = "custom-output.md"
-        config.output.style = "plain"  # supports "plain", "markdown", and "xml"
+        config.output.style = SUMMARIZER_REPOMIX_CONFIG_OUTPUT_STYLE # supports "plain", "markdown", and "xml"
         config.output.show_line_numbers = True
         config.output.copy_to_clipboard = True
         config.output.calculate_tokens = True
