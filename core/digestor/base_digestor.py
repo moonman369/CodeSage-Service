@@ -2,11 +2,11 @@
 
 from abc import ABC, abstractmethod
 
-class BaseSummarizer(ABC):
+class BaseDigestor(ABC):
     @abstractmethod
-    def summarize_repo(self, repo_path: str) -> str:
+    def digest_repo(self, repo_path: str) -> str:
         pass
 
     @abstractmethod
-    def summarize_directory(self, repo_path: str) -> str:
+    def digest_directory(self, repo_path: str) -> str:
         pass

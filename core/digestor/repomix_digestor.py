@@ -1,8 +1,7 @@
 # core/summarizer/repomix_summarizer.py
 
-from core.summarizer.base_summarizer import BaseSummarizer
+from core.digestor.base_digestor import BaseDigestor
 from repomix import RepoProcessor, RepomixConfig
-import multiprocessing
 import os
 from dotenv import load_dotenv
 
@@ -10,8 +9,8 @@ load_dotenv()
 
 SUMMARIZER_REPOMIX_CONFIG_OUTPUT_STYLE = os.getenv("SUMMARIZER_REPOMIX_CONFIG_OUTPUT_STYLE", "plain")
 
-class RepoMixSummarizer(BaseSummarizer):
-    def summarize_repo(self, repo_url: str) -> str:
+class RepomixDigestor(BaseDigestor):
+    def digest_repo(self, repo_url: str) -> str:
         # Create custom configuration
         config = RepomixConfig()
 
@@ -59,7 +58,7 @@ class RepoMixSummarizer(BaseSummarizer):
         
         return result.output_content
 
-    def summarize_directory(self, repo_path: str) -> str:
+    def digest_directory(self, repo_path: str) -> str:
         # Create custom configuration
         config = RepomixConfig()
         
