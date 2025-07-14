@@ -29,13 +29,15 @@ def test_chunk_processor(
     
     # Create directory for individual chunk outputs
     chunks_output_dir = os.path.join(root_outputs_dir, "chunks")
-    os.makedirs(chunks_output_dir, exist_ok=True)
+    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "outputs", "summaries")
+    os.makedirs(output_dir, exist_ok=True)
     
     # Process each chunk and collect results
     all_processed_chunks = []
     
     for i, chunk in enumerate(chunks):
         # Process the chunk
+        print(f"Processing chunk {i + 1}/{len(chunks)}: {chunk['metadata']['file_path']}")
         processed_chunk = chunk_processor.process_chunk(chunk)
         all_processed_chunks.append(processed_chunk)
         
@@ -47,7 +49,7 @@ def test_chunk_processor(
         # print(f"Processed chunk {i + 1} and saved to {individual_output_file}")
     
     # Save all processed chunks to a single output file in ./outputs
-    all_chunks_output_file = os.path.join(root_outputs_dir, "all_chunks_output.json")
+    all_chunks_output_file = os.path.join(output_dir, "all_chunks_output.json")
     with open(all_chunks_output_file, 'w', encoding='utf-8') as f_all:
         json.dump(all_processed_chunks, f_all, indent=4)
     

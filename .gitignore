@@ -21,6 +21,9 @@ wheels/
 *.egg
 MANIFEST
 
+# Output directories
+outputs/
+
 # Repomix Output
 repomix-output.*
 
