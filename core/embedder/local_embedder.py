@@ -25,7 +25,7 @@ class LocalEmbedder(BaseEmbedder):
             else:
                 chunk["embedding"] = []
         
-        
+
         return chunks
 
     def embed_chunks_from_file(self, json_file_path: str) -> List[Dict]:
@@ -38,3 +38,6 @@ class LocalEmbedder(BaseEmbedder):
 
         print(f"📄 Loaded {len(chunks)} chunks from {json_file_path}")
         return self.embed_chunks(chunks)
+
+    def embed_text(self, text: str) -> List[float]:
+        return self.model.encode(text, convert_to_numpy=True).tolist()

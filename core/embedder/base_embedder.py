@@ -17,3 +17,10 @@ class BaseEmbedder(ABC):
         Loads chunks from JSON file, embeds them, returns updated chunks list.
         """
         pass
+
+    @abstractmethod
+    def embed_text(self, text: str) -> List:
+        """
+        Takes a text string, splits it into chunks, embeds them, returns list of chunks with embeddings.
+        """
+        pass
