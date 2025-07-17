@@ -2,6 +2,7 @@ from typing import List, Dict
 from abc import ABC, abstractmethod
 from sentence_transformers import SentenceTransformer
 from core.embedder.base_embedder import BaseEmbedder
+from core.vector_store.qdrant_vector_store import QdrantVectorStore
 import os
 
 
@@ -11,6 +12,10 @@ class LocalEmbedder(BaseEmbedder):
         self.model = SentenceTransformer(embedding_model)
         print("✅ Model loaded successfully!")
 
+        self.vector_store = QdrantVectorStore(
+            vector_size=self.model.get_sentence_embedding_dimension()
+        )
+
     def embed_chunks(self, chunks: List[Dict]) -> List[Dict]:
         for chunk in chunks:
             text = chunk.get("llm_summary") or chunk.get("raw_code") or ""
@@ -19,6 +24,8 @@ class LocalEmbedder(BaseEmbedder):
                 chunk["embedding"] = embedding
             else:
                 chunk["embedding"] = []
+        
+        
         return chunks
 
     def embed_chunks_from_file(self, json_file_path: str) -> List[Dict]:
