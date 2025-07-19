@@ -33,7 +33,7 @@ def test_upsert_vector_store():
     vector_store.upsert(chunks)
     print("✅ Chunks upserted successfully!")
 
-def test_query_vector_store(text: str = "This is a test query."):
+def test_query_vector_store(text: str = "This is a test query.", project_name: str = ""):
     """
     Test querying the Qdrant vector store.
     """
@@ -45,7 +45,7 @@ def test_query_vector_store(text: str = "This is a test query."):
     from test.embedder.test_embed_text import test_embed_text
     # Example query vector (replace with actual embedding)
     query_vector = test_embed_text(text)
-    results = vector_store.query(query_vector, top_k=5)
+    results = vector_store.query(query_vector, project_name=project_name, top_k=5)
 
     print(f"✅ Query results: {results}")
     import os
@@ -61,4 +61,4 @@ def test_query_vector_store(text: str = "This is a test query."):
 
 if __name__ == "__main__":
     # test_upsert_vector_store()
-    test_query_vector_store("Where is XML transformation handled?")
+    test_query_vector_store("Which section of the website contains the details of my leetcode profile and stats?", "Portfolio")

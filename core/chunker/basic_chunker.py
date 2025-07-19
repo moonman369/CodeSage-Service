@@ -19,6 +19,11 @@ class BasicChunker(BaseChunker):
         self.overlap = overlap
 
     def chunk(self, markdown_digest: str) -> List[Dict]:
+        # Extract project name from the top of the digest
+        project_name = None
+        project_match = re.search(r"^# Project: (.+)$", markdown_digest, re.MULTILINE)
+        if project_match:
+            project_name = project_match.group(1).strip()
         files = self._parse_markdown_digest(markdown_digest)
         all_chunks = []
 
@@ -26,7 +31,8 @@ class BasicChunker(BaseChunker):
             code_chunks = self._chunk_code(
                 code=file_block["code"],
                 language=file_block["language"],
-                file_path=file_block["file_path"]
+                file_path=file_block["file_path"],
+                project_name=project_name
             )
             all_chunks.extend(code_chunks)
 
@@ -64,7 +70,7 @@ class BasicChunker(BaseChunker):
 
         return files
 
-    def _chunk_code(self, code: str, language: str, file_path: str) -> List[Dict]:
+    def _chunk_code(self, code: str, language: str, file_path: str, project_name: str = None) -> List[Dict]:
         lines = code.splitlines()
         total_lines = len(lines)
         comment_prefix = get_comment_prefix(language)
@@ -87,7 +93,8 @@ class BasicChunker(BaseChunker):
                     "total_chunks_in_file": (total_lines + self.chunk_size - 1) // self.chunk_size,
                     "source": "repomix-digest"
                 },
-                "raw_code": "\n".join(chunk_lines)
+                "raw_code": "\n".join(chunk_lines),
+                "project_name": project_name
             })
 
             chunk_index += 1

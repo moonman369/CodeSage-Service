@@ -52,6 +52,7 @@ class QdrantVectorStore(BaseVectorStore):
                     id=item.get("id", str(uuid.uuid4())),
                     vector=item["embedding"],
                     payload={
+                        "project_name": item.get("project_name", ""),
                         "metadata": item.get("metadata", {}),
                         "llm_summary": item.get("llm_summary", ""),
                         "raw_code": item.get("raw_code", ""),
@@ -60,10 +61,18 @@ class QdrantVectorStore(BaseVectorStore):
             )
         self.client.upsert(collection_name=self.collection_name, points=points)
 
-    def query(self, query_vector: List[float], top_k: int = 5) -> List[Dict[str, Any]]:
+    def query(self, query_vector: List[float], project_name: str = "", top_k: int = 5) -> List[Dict[str, Any]]:
         search_result = self.client.search(
             collection_name=self.collection_name,
             query_vector=query_vector,
+            query_filter=Filter(
+                must=[
+                    FieldCondition(
+                        key="project_name",
+                        match=MatchValue(value=project_name)  # Match all projects
+                    )
+                ]
+            ),
             limit=top_k
         )
         return [

@@ -3,7 +3,7 @@ import multiprocessing
 
 def main():
     digestor = RepomixDigestor()
-    result = digestor.digest_repo("https://github.com/moonman369/XMLTransformationFunctionApp")
+    result = digestor.digest_repo("https://github.com/moonman369/Portfolio")
     print(f"Digest length: {len(result)}")
 
 if __name__ == "__main__":

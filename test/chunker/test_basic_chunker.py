@@ -2,21 +2,21 @@ import os
 import re
 from core.chunker.basic_chunker import BasicChunker
 
-def read_digest_from_root(filename="repomix-output.md") -> str:
+def read_digest_from_root(filename=None) -> str:
     """
     Reads the markdown digest from the project root.
     Assumes this test script is run from anywhere inside the CodeSage repo.
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    
     # Navigate up to project root (two levels up from test/chunker)
     root_dir = os.path.abspath(os.path.join(current_dir, "..", ".."))
+    # Use the new default file path if not provided
+    if filename is None:
+        filename = "outputs\\digestor\\repomix_output.md"
     digest_path = os.path.join(root_dir, filename)
-    
     print(f"Looking for digest at: {digest_path}")
     if not os.path.exists(digest_path):
         raise FileNotFoundError(f"Digest file not found at: {digest_path}")
-
     with open(digest_path, "r", encoding="utf-8") as f:
         content = f.read()
         print(f"Successfully loaded digest ({len(content)} characters)")
@@ -42,6 +42,7 @@ def test_chunking_from_digest():
     with open(output_file, 'w', encoding='utf-8') as f:
         for i, chunk in enumerate(chunks):
             f.write(f"CHUNK {i + 1}\n")
+            f.write(f"Project Name: {chunk['project_name']}\n")
             f.write(f"File: {chunk['metadata']['file_path']}\n")
             f.write(f"Lines: {chunk['metadata']['start_line']}-{chunk['metadata']['end_line']}\n")
             f.write(f"Language: {chunk['metadata']['language']}\n")
