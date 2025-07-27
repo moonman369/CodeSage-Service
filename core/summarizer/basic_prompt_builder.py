@@ -22,7 +22,7 @@ class BasicPromptBuilder(PromptBuilderInterface):
             f"---\n"
             f"\n"
             f"Please answer the following:\n"
-            f"1. What is this chunk of code doing? (Summarize in 2–3 sentences)\n"
+            f"1. What is this chunk of code doing? (Summarize in 4-5 sentences)\n"
             f"2. If possible, mention any functions, classes, or patterns it seems to belong to.\n"
             f"3. Mention any dependencies, environment variables, external modules, or other files this chunk interacts with.\n"
             f"4. Classify this code chunk as one of the following: configuration, utility/helper, controller/logic, route/entrypoint, model/schema, or unknown.\n"
