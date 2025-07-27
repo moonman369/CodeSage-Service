@@ -3,12 +3,12 @@
 import os
 import json
 from typing import List, Dict
-from core.summarizer.interfaces import LLMClientInterface, ChunkProcessorInterface, PromptBuilderInterface
-from core.summarizer.basic_prompt_builder import BasicPromptBuilder
+from core.summarizer.base_chunk_processor import ChunkProcessorInterface
+from core.prompt.basic_prompt_builder import BasicPromptBuilder
 from core.summarizer.chunk_processor import LLMChunkProcessor
 from core.chunker.basic_chunker import BasicChunker
 from test.chunker.test_basic_chunker import read_digest_from_root
-from core.summarizer.openrouter_ai_client import OpenRouterAIClient
+from core.llm.openrouter_ai_client import OpenRouterAIClient
 
 
 def test_chunk_processor(

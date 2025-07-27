@@ -1,8 +1,8 @@
-from .interfaces import PromptBuilderInterface
+from .base_prompt_builder import BasePromptBuilder
 
 
-class BasicPromptBuilder(PromptBuilderInterface):
-    def build_prompt(self, chunk: dict) -> str:
+class BasicPromptBuilder(BasePromptBuilder):
+    def build_prompt_chunk(self, chunk: dict) -> str:
         file_path = chunk["metadata"]["file_path"]
         language = chunk["metadata"]["language"]
         start = chunk["metadata"]["start_line"]

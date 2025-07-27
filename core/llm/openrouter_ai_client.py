@@ -1,4 +1,4 @@
-from .interfaces import LLMClientInterface
+from base_llm_client import BaseLLMClient
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
@@ -7,7 +7,7 @@ from typing import Optional
 load_dotenv()
 
 # Replace this with real OpenAI or other client later
-class OpenRouterAIClient(LLMClientInterface):
+class OpenRouterAIClient(BaseLLMClient):
     def __init__(self, model: str = "gpt-4o", temperature: float = 0.3):
         self.api_key = os.getenv("SUMMARIZER_OPENROUTER_API_KEY")
         self.api_url = os.getenv("SUMMARIZER_OPENROUTER_API_URL")
