@@ -45,6 +45,25 @@ class QdrantVectorStore(BaseVectorStore):
             )
 
     def upsert(self, chunks: List[Dict[str, Any]]) -> None:
+        if not chunks:
+            return
+
+        # Assume all chunks have the same repo_url (if present)
+        repo_url = chunks[0].get("metadata", {}).get("repo_url", None)
+        if repo_url:
+            # Delete all points with the same repo_url in payload.metadata
+            self.client.delete(
+                collection_name=self.collection_name,
+                points_selector=Filter(
+                    must=[
+                        FieldCondition(
+                            key="metadata.repo_url",
+                            match=MatchValue(value=repo_url)
+                        )
+                    ]
+                )
+            )
+
         points = []
         for item in chunks:
             points.append(

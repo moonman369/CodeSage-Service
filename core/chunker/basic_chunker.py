@@ -24,6 +24,10 @@ class BasicChunker(BaseChunker):
         project_match = re.search(r"^# Project: (.+)$", markdown_digest, re.MULTILINE)
         if project_match:
             project_name = project_match.group(1).strip()
+        project_url = None
+        project_match = re.search(r"^# Project URL: (.+)$", markdown_digest, re.MULTILINE)
+        if project_match:
+            project_url = project_match.group(1).strip()
         files = self._parse_markdown_digest(markdown_digest)
         all_chunks = []
 
@@ -32,7 +36,8 @@ class BasicChunker(BaseChunker):
                 code=file_block["code"],
                 language=file_block["language"],
                 file_path=file_block["file_path"],
-                project_name=project_name
+                project_name=project_name,
+                project_url=project_url
             )
             all_chunks.extend(code_chunks)
 
@@ -70,7 +75,7 @@ class BasicChunker(BaseChunker):
 
         return files
 
-    def _chunk_code(self, code: str, language: str, file_path: str, project_name: str = None) -> List[Dict]:
+    def _chunk_code(self, code: str, language: str, file_path: str, project_name: str = None, project_url: str = None) -> List[Dict]:
         lines = code.splitlines()
         total_lines = len(lines)
         comment_prefix = get_comment_prefix(language)
@@ -94,7 +99,8 @@ class BasicChunker(BaseChunker):
                     "source": "repomix-digest"
                 },
                 "raw_code": "\n".join(chunk_lines),
-                "project_name": project_name
+                "project_name": project_name,
+                "project_url": project_url
             })
 
             chunk_index += 1

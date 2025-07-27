@@ -174,7 +174,7 @@ class RepomixDigestor(BaseDigestor):
         result = processor.process(write_output=False)
 
         # Prepend project name to output content
-        project_header = f"# Project: {project_name}\n\n"
+        project_header = f"# Project: {project_name}\n\n# Project URL: {repo_url}\n\n"
         output_content = project_header + result.output_content
 
         # Write output file with project name at the top
@@ -226,7 +226,7 @@ class RepomixDigestor(BaseDigestor):
         result = processor.process(write_output=False)
 
         # Prepend project name to output content
-        project_header = f"# Project: {project_name}\n\n"
+        project_header = f"# Project: {project_name}\n\n# Project URL: {repo_path}\n\n"
         output_content = project_header + result.output_content
 
         # Write output file with project name at the top
