@@ -1,10 +1,10 @@
 from typing import Dict
-from .base_chunk_processor import ChunkProcessorInterface
+from .base_chunk_processor import BaseChunkProcessor
 from core.prompt.base_prompt_builder import BasePromptBuilder
 from core.llm.base_llm_client import BaseLLMClient
 
 
-class LLMChunkProcessor(ChunkProcessorInterface):
+class LLMChunkProcessor(BaseChunkProcessor):
     def __init__(self, prompt_builder: BasePromptBuilder, llm_client: BaseLLMClient):
         self.prompt_builder = prompt_builder
         self.llm_client = llm_client

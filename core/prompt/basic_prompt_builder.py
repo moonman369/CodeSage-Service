@@ -29,4 +29,6 @@ class BasicPromptBuilder(BasePromptBuilder):
             f"\n"
             f"Only return your summary and insights. Do not explain what you are doing or include extra formatting."
         )
-
+    
+    def build_prompt_rag(self, chunk: dict) -> str:
+        pass

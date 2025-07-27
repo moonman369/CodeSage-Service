@@ -1,4 +1,4 @@
-from base_llm_client import BaseLLMClient
+from .base_llm_client import BaseLLMClient
 from openai import OpenAI
 from dotenv import load_dotenv
 import os

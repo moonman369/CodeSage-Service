@@ -3,7 +3,7 @@
 import os
 import json
 from typing import List, Dict
-from core.summarizer.base_chunk_processor import ChunkProcessorInterface
+from core.summarizer.base_chunk_processor import BaseChunkProcessor
 from core.prompt.basic_prompt_builder import BasicPromptBuilder
 from core.summarizer.chunk_processor import LLMChunkProcessor
 from core.chunker.basic_chunker import BasicChunker
@@ -13,7 +13,7 @@ from core.llm.openrouter_ai_client import OpenRouterAIClient
 
 def test_chunk_processor(
     chunks: List[Dict],
-    chunk_processor: ChunkProcessorInterface,
+    chunk_processor: BaseChunkProcessor,
     output_dir: str = "outputs/summarized-chunks.txt"
 ) -> None:
     """
