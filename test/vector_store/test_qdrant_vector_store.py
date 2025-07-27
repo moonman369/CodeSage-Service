@@ -61,4 +61,4 @@ def test_query_vector_store(text: str = "This is a test query.", project_name: s
 
 if __name__ == "__main__":
     # test_upsert_vector_store()
-    test_query_vector_store("Which section of the website contains the details of my leetcode profile and stats?", "Portfolio")
+    test_query_vector_store("Which section of the website contains the contact logic that helps the site visitor contact me on other platforms like email, telegram, linkedin, etc.?", "Portfolio")

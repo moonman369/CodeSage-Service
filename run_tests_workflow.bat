@@ -20,7 +20,7 @@ set show_progress=for /l %%i in (1,1,%barlen%) do (
     <nul set /p=" %percent%%%`r"
 )
 :: Step 1: Run digestor tests
-echo Step 1/5: Running unit tests...
+echo Step 1/5: Running digestor tests...
 call :progress_bar
 python -m test.digestor.repomix_digestor_test
 if %errorlevel% neq 0 (
