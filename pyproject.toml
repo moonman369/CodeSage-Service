@@ -5,7 +5,7 @@ description = "CodeSage MCP-enabled code intelligence and RAG service"
 authors = [ { name = "CodeSage" } ]
 readme = "README.md"
 requires-python = ">=3.12"
-license = { text = "MIT" }
+license = "MIT"
 
 # Core runtime dependencies (mirrors requirements.txt plus new MCP + search libs)
 dependencies = [
@@ -124,8 +124,17 @@ dependencies = [
 codesage-mcp = "codesage_mcp.server:main"
 
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
+
+# NEW: restrict packages to intended ones
+[tool.setuptools.packages.find]
+include = ["core", "cli", "codesage_mcp"]
+exclude = ["tests*", "outputs*", "mcp*"]
+
+# If you prefer an explicit fixed list instead, comment the block above and use:
+# [tool.setuptools]
+# packages = ["core", "cli", "codesage_mcp"]
 
 [tool.uv]
 # Enable uv lock behaviour; generate lock with: uv lock
