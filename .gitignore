@@ -1,97 +1,49 @@
-# Python-specific
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Output directories
-outputs/
-
-# Repomix Output
-repomix-output.*
-
-# Virtual Environment
-codesage-venv/
-.venv/
-venv/
-ENV/
-env/
-.env
 
 # Distribution / packaging
-.Python
-.coverage
-htmlcov/
-.tox/
-.nox/
-.hypothesis/
-.pytest_cache/
-coverage.xml
-*.cover
+.build/
+venv/
+.env*
+.eggs/
+*.egg-info/
+.dist/
+dist/
+build/
 
-# IDE-specific files
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Tree-sitter build artifacts
-*.o
-*.a
-*.so
-*.obj
-*.lib
-*.dll
-
-# Project-specific
-.env
-*.log
-logs/
-outputs/*.md
-outputs/*.json
-embeddings/.cache/
-.openai_key
-
-# Documentation build
-docs/_build/
-site/
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+.coverage*
 htmlcov/
-.coverage
-.coverage.*
-coverage.html
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
 .pytest_cache/
-nosetests.xml
-coverage.xml
+.cache/
+.tox/
+.mypy_cache/
+.ruff_cache/
 
-# Jupyter Notebook
+# Python
+*.pyo
+*.pyd
+*.so
+
+# Jupyter
 .ipynb_checkpoints
 
-# Local development settings
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# uv
+.uv/
+uv.lock
+
+# Misc
+*.log
