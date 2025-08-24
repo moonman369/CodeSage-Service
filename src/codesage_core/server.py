@@ -1,11 +1,11 @@
-"""Minimal FastMCP server exposing core CodeSage tools.
+"""FastMCP server entrypoint defining core CodeSage tools.
 
-Implements the following MCP tools (all async) with mocked logic:
-1. ping              -> health check; echoes back the provided message prefixed with 'pong:'.
-2. code_understanding -> naive summarization of a code snippet.
-3. code_history      -> session-scoped history add/get store.
-4. hybrid_search     -> mock hybrid search returning static ranked results.
-5. config_info       -> returns mock configuration / environment information.
+Async tools (scaffolded with TODOs):
+    1. ping               - health check.
+    2. code_understanding - embed + retrieve + generate answer about code.
+    3. code_history       - metadata queries (commit / branch / PR) via external providers.
+    4. hybrid_search      - combined metadata + code (RAG) search flow.
+    5. config_info        - basic server configuration information.
 """
 
 from __future__ import annotations
@@ -18,23 +18,40 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Dict, List
 
-try:
+from .services.ping_service import execute_ping
+from .services.code_understanding_service import execute_code_understanding
+from .services.code_history_service import execute_code_history
+from .services.hybrid_search_service import execute_hybrid_search
+from .services.config_info_service import execute_config_info
+
+try:  # FastMCP availability
     from fastmcp import FastMCP
 except ImportError as exc:  # pragma: no cover
-    raise SystemExit("FastMCP not installed. Run `uv sync` to install dependencies.") from exc
+    raise SystemExit("FastMCP not installed. Run `uv sync`.") from exc
 
 logger = logging.getLogger("codesage_core.server")
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s:%(name)s: %(message)s")
 
-__version__ = "0.1.0"
+SERVER_VERSION = "1.0"
+TOOL_NAMES = [
+    "ping",
+    "code_understanding",
+    "code_history",
+    "hybrid_search",
+    "config_info",
+    "list_repos",
+    "list_commits",
+    "list_prs",
+    "load_repository",
+]
 
-# In-memory session history store
+
+# In-memory store for transient metadata results (e.g., history of queries)
 _history: List[Dict[str, Any]] = []
 
 
 @asynccontextmanager
 async def _lifespan(app: FastMCP):  # type: ignore[unused-ignore]
-    """Manage startup and shutdown for the FastMCP app."""
     await _startup()
     try:
         yield
@@ -44,93 +61,144 @@ async def _lifespan(app: FastMCP):  # type: ignore[unused-ignore]
 
 app = FastMCP(
     name="codesage-core",
-    version=__version__,
-    instructions="CodeSage Core MCP Server: diagnostics, code understanding, history, hybrid search, config info.",
+    version=SERVER_VERSION,
+    instructions="CodeSage MCP: code understanding, metadata, hybrid search, config.",
     lifespan=_lifespan,
 )
 
 
 # ---------------------------------------------------------------------------
-# Tool Implementations
+# Tools
 # ---------------------------------------------------------------------------
 
 
-@app.tool(description="Health check tool: echo back 'pong: <message>'.")
-async def ping(message: str) -> Dict[str, str]:
-    """Echo a message with a pong prefix."""
-    return {"reply": f"pong: {message}"}
+@app.tool(description="Simple health-check tool.")
+async def ping() -> Dict[str, Any]:
+    """Delegate to ping service."""
+    return execute_ping()
 
 
-@app.tool(description="Analyze and summarize a code snippet (naive heuristic).")
-async def code_understanding(code: str) -> Dict[str, str]:
-    """Return a short natural language summary of the given code block.
+@app.tool(description="Embed query, retrieve code chunks, produce answer (scaffold).")
+async def code_understanding(query: str, repo_path: str = "./") -> Dict[str, Any]:
+    """Delegate to code understanding service."""
+    result = execute_code_understanding(query, repo_path)
+    _history.append({"timestamp": datetime.utcnow().isoformat() + "Z", "type": "code_understanding", "query": query})
+    return result
 
-    Heuristic summary inspects:
-      - number of lines
-      - presence of class / def / import keywords
+
+@app.tool(description="Metadata queries for commits / branches / PRs (scaffold).")
+async def code_history(query: str, type: str) -> Dict[str, Any]:  # noqa: A002
+    """Delegate to code history service."""
+    result = execute_code_history(query, {"type": type})
+    _history.append({"timestamp": datetime.utcnow().isoformat() + "Z", "type": f"history:{type}", "query": query})
+    return result
+
+
+@app.tool(description="Hybrid query spanning metadata + code (scaffold).")
+async def hybrid_search(query: str, type: str = "branch", repo_path: str = "./") -> Dict[str, Any]:
+    """Delegate to hybrid search service."""
+    result = execute_hybrid_search(query, {"type": type}, repo_path)
+    _history.append({"timestamp": datetime.utcnow().isoformat() + "Z", "type": "hybrid_search", "query": query})
+    return result
+
+
+@app.tool(description="Return server configuration and environment info.")
+async def config_info() -> Dict[str, Any]:
+    """Delegate to config info service and augment with runtime counters."""
+    base = execute_config_info()
+    base.update({"history_items": len(_history), "tools": TOOL_NAMES})
+    return base
+
+
+# ---------------------------------------------------------------------------
+# GitHub / Repository tools (placeholders)
+# ---------------------------------------------------------------------------
+
+
+@app.tool(description="List repositories accessible to the current user/session (placeholder).")
+async def list_repos() -> Dict[str, Any]:
+    """Return a placeholder list of repository names.
+
+    TODO:
+      - Integrate with GitHub MCP or other SCM provider
+      - Support pagination / filtering
     """
-    lines = [l.rstrip() for l in code.splitlines() if l.strip()]
-    line_count = len(lines)
-    keywords = {
-        "classes": sum(1 for l in lines if l.lstrip().startswith("class ")),
-        "functions": sum(1 for l in lines if l.lstrip().startswith("def ")),
-        "imports": sum(1 for l in lines if l.lstrip().startswith("import ") or l.lstrip().startswith("from ")),
-    }
-    parts = [f"~{line_count} lines"]
-    if keywords["classes"]:
-        parts.append(f"{keywords['classes']} class(es)")
-    if keywords["functions"]:
-        parts.append(f"{keywords['functions']} function(s)")
-    if keywords["imports"]:
-        parts.append(f"{keywords['imports']} import(s)")
-    summary = "Code snippet containing " + ", ".join(parts) + "."
-    return {"summary": summary}
+    return {"repos": ["alpha", "beta", "gamma"], "source": "stub"}
 
 
-@app.tool(description="Track or retrieve session history items.")
-async def code_history(action: str, message: str | None = None) -> Dict[str, Any]:
-    """Maintain an in-memory list of history records for the session.
+@app.tool(description="List recent commits for a repository branch (placeholder).")
+async def list_commits(repo: str, branch: str = "main", limit: int = 10) -> Dict[str, Any]:
+    """Return a placeholder commit list for a repo/branch.
 
     Parameters
     ----------
-    action: 'add' or 'get'
-        Operation to perform.
-    message: optional string
-        Message to store when action='add'.
+    repo: repository name
+    branch: branch to list commits from
+    limit: maximum commits to return
+
+    TODO:
+      - Call GitHub MCP commit listing with pagination
+      - Surface diff stats / authors
     """
-    action_norm = action.lower().strip()
-    if action_norm not in {"add", "get"}:
-        return {"error": "Invalid action. Use 'add' or 'get'."}
-    if action_norm == "add":
-        if not message:
-            return {"error": "message is required when action='add'"}
-        record = {"timestamp": datetime.utcnow().isoformat() + "Z", "message": message}
-        _history.append(record)
-        return {"status": "added", "total": len(_history)}
-    # get
-    return {"history": list(_history)}
-
-
-@app.tool(description="Perform a mock hybrid (keyword + embedding) search.")
-async def hybrid_search(query: str) -> Dict[str, Any]:
-    """Return static top matches for the provided query."""
-    # In a real implementation, we'd combine vector similarity + keyword ranking.
-    mock_results = [
-        {"id": "R1", "score": 0.91, "snippet": "def foo(): pass", "match_reason": "function name"},
-        {"id": "R2", "score": 0.83, "snippet": "class Bar:", "match_reason": "class definition"},
-        {"id": "R3", "score": 0.78, "snippet": "import os", "match_reason": "import usage"},
+    commits = [
+        {
+            "sha": f"deadbeef{i:02d}",
+            "message": f"Stub commit message {i}",
+            "author": "codesage-bot",
+            "branch": branch,
+            "repo": repo,
+        }
+        for i in range(min(limit, 5))
     ]
-    return {"query": query, "results": mock_results[:3]}
+    return {"repo": repo, "branch": branch, "commits": commits, "returned": len(commits), "source": "stub"}
 
 
-@app.tool(description="Return mock server configuration / environment info.")
-async def config_info() -> Dict[str, Any]:  # no input
-    """Return sample configuration details."""
+@app.tool(description="List pull requests for a repository (placeholder).")
+async def list_prs(repo: str, state: str = "open", limit: int = 10) -> Dict[str, Any]:
+    """Return a placeholder list of pull requests.
+
+    Parameters
+    ----------
+    repo: repository name
+    state: PR state filter (open/closed/merged)
+    limit: max number of PRs
+
+    TODO:
+      - Integrate with GitHub MCP PR listing
+      - Include reviewers / labels / mergeability
+    """
+    prs = [
+        {
+            "id": 100 + i,
+            "title": f"Add feature {i}",
+            "state": state,
+            "repo": repo,
+        }
+        for i in range(min(limit, 3))
+    ]
+    return {"repo": repo, "state": state, "prs": prs, "returned": len(prs), "source": "stub"}
+
+
+@app.tool(description="Load repository metadata to prepare for embeddings/code search (placeholder).")
+async def load_repository(repo: str, default_branch: str = "main") -> Dict[str, Any]:
+    """Simulate repository load and metadata preparation.
+
+    TODO:
+      - Clone / fetch repository if not present
+      - Build file manifest + lightweight statistics
+      - Kick off background embedding job
+    """
+    manifest = {
+        "files_indexed": 0,  # placeholder until real indexing
+        "languages": ["python"],  # stub
+        "default_branch": default_branch,
+    }
     return {
-        "version": __version__,
-        "environment": os.getenv("CODESAGE_ENV", "dev"),
-        "history_items": len(_history),
-        "tools": ["ping", "code_understanding", "code_history", "hybrid_search", "config_info"],
+        "repo": repo,
+        "loaded": True,
+        "manifest": manifest,
+        "message": f"Repository '{repo}' load scheduled (stub).",
+        "source": "stub",
     }
 
 
@@ -140,23 +208,22 @@ async def config_info() -> Dict[str, Any]:  # no input
 
 
 async def _startup() -> None:
-    logger.info("Starting CodeSage Core MCP server (tools registered: ping, code_understanding, code_history, hybrid_search, config_info)")
+    logger.info("Starting CodeSage MCP server (tools: %s)", ", ".join(TOOL_NAMES))
     await asyncio.sleep(0)
 
 
 async def _shutdown() -> None:
-    logger.info("Shutting down CodeSage Core MCP server")
+    logger.info("Shutting down CodeSage MCP server")
     await asyncio.sleep(0)
 
 
 # ---------------------------------------------------------------------------
-# CLI entrypoint
+# CLI Entry
 # ---------------------------------------------------------------------------
 
 
 def main() -> None:
-    """Launch the MCP server selecting a transport (default stdio)."""
-    parser = argparse.ArgumentParser(description="Run CodeSage Core MCP Server")
+    parser = argparse.ArgumentParser(description="Run CodeSage MCP Server")
     parser.add_argument("--transport", default=os.getenv("CODESAGE_MCP_TRANSPORT", "stdio"), help="stdio | http | sse | streamable-http")
     parser.add_argument("--host", default=os.getenv("CODESAGE_MCP_HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.getenv("CODESAGE_MCP_PORT", "8000")))
