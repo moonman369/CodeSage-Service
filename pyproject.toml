@@ -12,6 +12,9 @@ dependencies = [
     "typing-extensions>=4.8.0",
     "python-dotenv>=1.0.1",
     "structlog>=24.1.0",
+    "repomix",
+    "sentence-transformers",
+    "qdrant-client",
 ]
 
 [project.optional-dependencies]

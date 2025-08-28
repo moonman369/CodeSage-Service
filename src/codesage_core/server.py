@@ -19,13 +19,13 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Dict, List
 
-from .services.ping_service import execute_ping
-from .services.code_understanding_service import execute_code_understanding
-from .services.code_history_service import execute_code_history
-from .services.hybrid_search_service import execute_hybrid_search
-from .services.config_info_service import execute_config_info
-from .services.github_mcp_service import GitHubMCPService
-from .services.load_repository_service import execute_load_repository
+from .services.ping.service import execute_ping
+from .services.code_understanding.service import execute_code_understanding
+from .services.code_history.service import execute_code_history
+from .services.hybrid_search.service import execute_hybrid_search
+from .services.config_info.service import execute_config_info
+from .services.github_mcp_service import GitHubMCPService  # TODO: move fully into services/github
+from .services.repository.load_service import execute_load_repository
 
 try:  # FastMCP availability
     from fastmcp import FastMCP
@@ -87,7 +87,7 @@ async def ping() -> Dict[str, Any]:
 async def code_understanding(query: str, repo_path: str = "./") -> Dict[str, Any]:
     """Delegate to code understanding service."""
     result = execute_code_understanding(query, repo_path)
-    _history.append({"timestamp": datetime.utcnow().isoformat() + "Z", "type": "code_understanding", "query": query})
+    _history.append ({"timestamp": datetime.now().isoformat() + "Z", "type": "code_understanding", "query": query})
     return result
 
 
