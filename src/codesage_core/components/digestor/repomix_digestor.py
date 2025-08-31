@@ -98,10 +98,10 @@ class RepomixDigestor(BaseDigestor):
             # === Docs, Markdown, Licenses ===
             "docs/**",
             "*.md",
-            "!README.md",
-            "!readme.md",
-            "!README.txt",
-            "!readme.txt",
+            # 🚨 Whitelist all possible README variants
+            "!README*",
+            "!readme*",
+            "!Readme*",
             "LICENSE",
             "LICENSE.txt",
             "LICENSE.md",
@@ -155,7 +155,7 @@ class RepomixDigestor(BaseDigestor):
             "outputs/**",
             "repomix-output.md",
             "*.json",
-            "!manifest.json",     # If you want to keep manifest context
+            "!manifest.json",     # Keep manifest context if needed
         ]
 
         config.ignore.use_gitignore = True

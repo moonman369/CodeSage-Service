@@ -15,6 +15,7 @@ dependencies = [
     "repomix",
     "sentence-transformers",
     "qdrant-client",
+    "openai>=1.0.0",
 ]
 
 [project.optional-dependencies]

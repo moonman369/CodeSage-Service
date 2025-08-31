@@ -103,5 +103,45 @@ class QdrantVectorStore(BaseVectorStore):
             for hit in search_result
         ]
 
+    def has_project(self, project_name: str) -> bool:
+        """Return True if at least one vector exists for the given project_name."""
+        # Primary: exact count (more reliable for small filtered subsets)
+        try:
+            res = self.client.count(
+                collection_name=self.collection_name,
+                filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key="project_name",
+                            match=MatchValue(value=project_name)
+                        )
+                    ]
+                ),
+                exact=True,
+            )
+            if getattr(res, "count", 0) > 0:
+                return True
+        except Exception:
+            pass
+        # Fallback: attempt minimal search with zero vector (in case count unsupported / misconfigured)
+        try:
+            zero_vec = [0.0] * self.vector_size
+            sr = self.client.search(
+                collection_name=self.collection_name,
+                query_vector=zero_vec,
+                query_filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key="project_name",
+                            match=MatchValue(value=project_name)
+                        )
+                    ]
+                ),
+                limit=1,
+            )
+            return bool(sr)
+        except Exception:
+            return False
+
     def delete_collection(self) -> None:
         self.client.delete_collection(collection_name=self.collection_name)

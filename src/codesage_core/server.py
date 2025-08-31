@@ -20,12 +20,17 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 from .services.ping.service import execute_ping
-from .services.code_understanding.service import execute_code_understanding
+from .schemas.code_understanding import (
+    CodeUnderstandingRequest,
+    CodeUnderstandingResponse,
+)
+from .services.code_understanding.service_impl import CodeUnderstandingService
 from .services.code_history.service import execute_code_history
 from .services.hybrid_search.service import execute_hybrid_search
 from .services.config_info.service import execute_config_info
 from .services.github_mcp_service import GitHubMCPService  # TODO: move fully into services/github
 from .services.repository.load_service import execute_load_repository
+from .tools.repo_summary_tool import RepoSummaryTool
 
 try:  # FastMCP availability
     from fastmcp import FastMCP
@@ -48,6 +53,8 @@ TOOL_NAMES = [
     "list_commits",
     "list_prs",
     "load_repository",
+    "get_file_contents",
+    "repo_summary",
 ]
 
 
@@ -83,12 +90,37 @@ async def ping() -> Dict[str, Any]:
     return execute_ping()
 
 
-@app.tool(description="Embed query, retrieve code chunks, produce answer (scaffold).")
-async def code_understanding(query: str, repo_path: str = "./") -> Dict[str, Any]:
-    """Delegate to code understanding service."""
-    result = execute_code_understanding(query, repo_path)
-    _history.append ({"timestamp": datetime.now().isoformat() + "Z", "type": "code_understanding", "query": query})
-    return result
+_code_understanding_service = CodeUnderstandingService()
+_repo_summary_tool = RepoSummaryTool()
+
+
+@app.tool(description="Embed query, retrieve code chunks, produce answer about repository code.")
+async def code_understanding(
+    repo: str,
+    query: str,
+    context_files: List[str] | None = None,
+    top_k: int = 5,
+) -> Dict[str, Any]:
+    """Main code understanding tool.
+
+    Accepts validated parameters, executes service pipeline and returns
+    response matching CodeUnderstandingResponse. Validation performed via the
+    Pydantic request/response schemas to keep contract explicit.
+    """
+    req = CodeUnderstandingRequest(repo=repo, query=query, context_files=context_files, top_k=top_k)
+    out = _code_understanding_service.handle(
+        repo=req.repo,
+        query=req.query,
+        top_k=req.top_k,
+        context_files=req.context_files,
+    )
+    # Handle not_found passthrough before strict schema validation
+    if isinstance(out, dict) and out.get("status") == "not_found":
+        _history.append({"timestamp": datetime.utcnow().isoformat() + "Z", "type": "code_understanding", "query": query})
+        return out  # includes status + message
+    resp = CodeUnderstandingResponse(**out)
+    _history.append({"timestamp": datetime.utcnow().isoformat() + "Z", "type": "code_understanding", "query": query})
+    return resp.model_dump()
 
 
 @app.tool(description="Metadata queries for commits / branches / PRs (scaffold).")
@@ -208,6 +240,27 @@ async def list_prs(repo: str, state: str = "open", limit: int = 10, github_user:
 @app.tool(description="Load repository metadata; optional github_user scope.")
 async def load_repository(repo: str, default_branch: str = "main", github_user: str | None = None) -> Dict[str, Any]:
     return await execute_load_repository(repo, default_branch=default_branch, github_user=github_user)
+
+
+@app.tool(description="Get file or directory contents from a GitHub repository (delegates to GitHub MCP get_file_contents).")
+async def get_file_contents(repo: str, path: str, ref: str = "main", github_user: str | None = None) -> Dict[str, Any]:
+    # Delegate directly; param names align with typical GitHub conventions.
+    return await _github_service.get_file_contents(owner=github_user, repo=repo, path=path, ref=ref)
+
+
+@app.tool(name="repo_summary", description="Generates a high-level summary or structure of the repository. Accepts optional semantic prompt to tailor summary.")
+async def repo_summary(project_name: str, structure: bool = False, prompt: str | None = None) -> Dict[str, Any]:
+    """Return repo-wide summary or structure.
+
+    Parameters:
+        project_name: repository identifier (matches vector store project_name)
+        structure: if True, return hierarchical file structure else semantic summary
+    """
+    if not project_name:
+        return {"status": "error", "error_type": "ValidationError", "message": "project_name is required"}
+    if structure:
+        return _repo_summary_tool.getRepoStructure(project_name)
+    return _repo_summary_tool.getRepoSummary(project_name, prompt=prompt)
 
 
 # ---------------------------------------------------------------------------
